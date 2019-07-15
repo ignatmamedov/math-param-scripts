@@ -11,33 +11,34 @@ from takeparam import *
 #//------------------------------------------------------------------------------
 param = ['r', 'divid', 'T', 'kappa', 'sigma_V', 'rho',
          'K', 'H', 'V0', 'theta', 'rho', 'L', 'h', 'Nt', 'Nv']
-val_param = takeparam('data.json', param)
-r = val_param.get('r')
+start_val_param = takeparam('data.json', param)
+finish_val_param = {}
+r = start_val_param.get('r')
 # premia 3.045403
-divid = val_param.get('divid')
+divid = start_val_param.get('divid')
 # premia 5.127110
 # up-and-out call option parameters
-T = val_param.get('T')
+T = start_val_param.get('T')
 
 # Heston model parameters
-kappa = val_param.get('kappa')  # heston parameter, mean reversion
-sigma_V = val_param.get('sigma_V')  # heston parameter, volatility of variance.
-rho = val_param.get('rho')  # heston parameter #correlation
+kappa = start_val_param.get('kappa')  # heston parameter, mean reversion
+sigma_V = start_val_param.get('sigma_V')  # heston parameter, volatility of variance.
+rho = start_val_param.get('rho')  # heston parameter #correlation
 
-K = val_param.get('K')  # strike
-H = val_param.get('H')  # barrier
+K = start_val_param.get('K')  # strike
+H = start_val_param.get('H')  # barrier
 
-V0=val_param.get('V0')
-theta=val_param.get('theta') #long run
-rho=val_param.get('rho')
+V0=start_val_param.get('V0')
+theta=start_val_param.get('theta') #long run
+rho=start_val_param.get('rho')
 
 r_divid = r-divid
 # method parameters
 
-L = val_param.get('L')
-h = val_param.get('h')
-Nt= val_param.get('Nt')
-Nv = val_param.get('Nv')
+L = start_val_param.get('L')
+h = start_val_param.get('h')
+Nt= start_val_param.get('Nt')
+Nv = start_val_param.get('Nv')
 
 # Variance tree, by Zanette, Briani and Apolloni (Z-B-A)
 
@@ -136,11 +137,11 @@ def call_price(approx = 0):
     Y = linspace(y_min, y_max, num = M, endpoint = False, dtype = np.float64)
 
     # tree info
-    print("h = ", h)
-    print("Y[0] = ", Y[0])
-    print("Y[M-1] = ", Y[M-1])
-    print("min variance:", V[Nv, 0])
-    print("max variance:", V[Nv, Nv])
+    finish_val_param.update(dict.fromkeys(["h"], h))
+    finish_val_param.update(dict.fromkeys(["Y[0]"], Y[0]))
+    finish_val_param.update(dict.fromkeys(["Y[M-1]"], Y[M-1]))
+    finish_val_param.update(dict.fromkeys(["min variance:"], V[Nv, 0]))
+    finish_val_param.update(dict.fromkeys(["max variance:"], V[Nv, Nv]))
     
     XI = np.linspace(-pi/h, pi/h, num = M, endpoint = False)
     S = H * np.exp(Y + rho/sigma_V * V[0,0])
@@ -283,7 +284,10 @@ def call_price(approx = 0):
 #     plt.plot(S, explicit_values)
 #     plt.show()
     for price in prices_range:
-        print ('{:3d} {:.5f}'.format(price, interp_price(price)))
-    print ("time", str(then-now)[:4], "sec")
+        finish_val_param.update(dict.fromkeys(['{:3d} '.format(price)], '{:.5f}'.format(interp_price(price))))
+    finish_val_param.update(dict.fromkeys(["time"], (str(then-now)[:4] + " sec")))
     
 call_price()
+result_dict = {"params": start_val_param, "result": finish_val_param}
+with open('result.json', 'w')as outfile:
+    json.dump(result_dict, outfile)
