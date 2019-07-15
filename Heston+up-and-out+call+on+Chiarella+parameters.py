@@ -5,13 +5,22 @@ import matplotlib.pyplot as plt
 import time
 from scipy import interpolate
 from takeparam import *
+import argparse
+import os
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--paramfile', type = str, dest='paramfile')
+args = parser.parse_args()
+varfile = args.paramfile
+
 
 #//------------------------------------------------------------------------------
 #Parameters
 #//------------------------------------------------------------------------------
 param = ['r', 'divid', 'T', 'kappa', 'sigma_V', 'rho',
          'K', 'H', 'V0', 'theta', 'rho', 'L', 'h', 'Nt', 'Nv']
-start_val_param = takeparam('data.json', param)
+start_val_param = takeparam(varfile, param)
 finish_val_param = {}
 r = start_val_param.get('r')
 # premia 3.045403
@@ -289,5 +298,5 @@ def call_price(approx = 0):
     
 call_price()
 result_dict = {"params": start_val_param, "result": finish_val_param}
-with open('result.json', 'w')as outfile:
+with open((str(os.path.dirname(os.path.abspath(__file__)))+'\\'+'result.json'), 'w')as outfile:
     json.dump(result_dict, outfile)
